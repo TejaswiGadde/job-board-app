@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Board - Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Job Board</h2>
+    <ul>
+        {% if session.get('role') %}
+            <li><a href="{{ url_for('logout') }}">Logout</a></li>
+        {% else %}
+            <li><a href="{{ url_for('login') }}">Login</a></li>
+            <li><a href="{{ url_for('register') }}">Register</a></li>
+        {% endif %}
+        <li><a href="{{ url_for('job_listings') }}">Job Listings</a></li>
+    </ul>
+</nav>
+
+<main>
+    <h1>Welcome to Job Board</h1>
+    <p>Connect employers and job seekers in one place.</p>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <ul class="flash-messages">
+          {% for category, msg in msgs %}
+            <li class="{{ category }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <h2>Recent Jobs</h2>
+    <ul>
+        {% for job in jobs %}
+            <li>
+                <strong>{{ job.title }}</strong> – {{ job.location }} |
+                {{ job.category }} |
+                {{ job.salary or 'N/A' }}
+            </li>
+        {% else %}
+            <li>No jobs posted yet.</li>
+        {% endfor %}
+    </ul>
+</main>
+
+<footer>
+    <p>&copy; 2025 Job Board. All rights reserved.</p>
+</footer>
+</body>
+</html>

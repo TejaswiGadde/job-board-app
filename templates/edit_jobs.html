@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Board - Edit Job</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Job Board</h2>
+    <ul>
+        <li><a href="{{ url_for('employer_jobs') }}">My Jobs</a></li>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+    </ul>
+</nav>
+
+<main>
+    <h1>Edit Job</h1>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <ul class="flash-messages">
+          {% for category, msg in msgs %}
+            <li class="{{ category }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('edit_job', job_id=job.id) }}">
+        <input type="text" name="title" value="{{ job.title }}" placeholder="Job Title" required>
+        <textarea name="description" placeholder="Job Description" required>{{ job.description }}</textarea>
+        <input type="text" name="location" value="{{ job.location }}" placeholder="Location">
+        <input type="number" name="salary" value="{{ job.salary }}" step="0.01" placeholder="Salary">
+        <input type="text" name="category" value="{{ job.category }}" placeholder="Category">
+        <button type="submit">Update Job</button>
+    </form>
+</main>
+
+<footer>
+    <p>&copy; 2025 Job Board. All rights reserved.</p>
+</footer>
+</body>
+</html>

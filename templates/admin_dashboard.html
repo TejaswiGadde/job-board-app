@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Board - Admin Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Job Board</h2>
+    <ul>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        <li><a href="{{ url_for('logout') }}">Logout</a></li>
+    </ul>
+</nav>
+
+<main>
+    <h1>Admin Dashboard</h1>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <ul class="flash-messages">
+          {% for category, msg in msgs %}
+            <li class="{{ category }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <section>
+        <h2>Overview</h2>
+        <ul>
+            <li>Total Employers: {{ stats.employer_count }}</li>
+            <li>Total Job Seekers: {{ stats.seeker_count }}</li>
+            <li>Total Jobs: {{ stats.job_count }}</li>
+            <li>Total Applications: {{ stats.application_count }}</li>
+        </ul>
+    </section>
+
+    <section>
+        <h2>Employers</h2>
+        <ul>
+            {% for e in employers %}
+                <li>{{ e.name }} ({{ e.email }}) – {{ e.company }}</li>
+            {% else %}
+                <li>No employers.</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section>
+        <h2>Job Seekers</h2>
+        <ul>
+            {% for s in seekers %}
+                <li>{{ s.name }} ({{ s.email }})</li>
+            {% else %}
+                <li>No job seekers.</li>
+            {% endfor %}
+        </ul>
+    </section>
+
+    <section>
+        <h2>Jobs</h2>
+        <ul>
+            {% for j in jobs %}
+                <li>{{ j.title }} – {{ j.location }} ({{ j.category }})</li>
+            {% else %}
+                <li>No jobs.</li>
+            {% endfor %}
+        </ul>
+    </section>
+</main>
+
+<footer>
+    <p>&copy; 2025 Job Board. All rights reserved.</p>
+</footer>
+</body>
+</html>

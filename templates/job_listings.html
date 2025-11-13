@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Board - Job Listings</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Job Board</h2>
+    <ul>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+        {% if session.get('role') == 'seeker' %}
+            <li><a href="{{ url_for('my_applications') }}">My Applications</a></li>
+        {% endif %}
+        {% if session.get('role') == 'employer' %}
+            <li><a href="{{ url_for('employer_jobs') }}">My Jobs</a></li>
+        {% endif %}
+    </ul>
+</nav>
+
+<main>
+    <h1>Job Listings</h1>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <ul class="flash-messages">
+          {% for category, msg in msgs %}
+            <li class="{{ category }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="get" action="{{ url_for('job_listings') }}">
+        <input type="text" name="q" placeholder="Search keyword" value="{{ q }}">
+        <input type="text" name="category" placeholder="Category" value="{{ category }}">
+        <input type="text" name="location" placeholder="Location" value="{{ location }}">
+        <button type="submit">Search</button>
+    </form>
+
+    <ul>
+        {% for job in jobs %}
+            <li>
+                <strong>{{ job.title }}</strong><br>
+                {{ job.location }} | {{ job.category }} | {{ job.salary or 'N/A' }}<br>
+                Posted by: {{ job.employer.name if job.employer else 'Unknown' }}<br>
+                <p>{{ job.description }}</p>
+
+                {% if session.get('role') == 'seeker' %}
+                    <form method="post" action="{{ url_for('apply', job_id=job.id) }}">
+                        <button type="submit">Apply</button>
+                    </form>
+                {% endif %}
+            </li>
+        {% else %}
+            <li>No jobs found.</li>
+        {% endfor %}
+    </ul>
+</main>
+
+<footer>
+    <p>&copy; 2025 Job Board. All rights reserved.</p>
+</footer>
+</body>
+</html>

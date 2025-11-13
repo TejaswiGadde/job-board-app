@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Board - Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Job Board</h2>
+    <ul>
+        <li><a href="{{ url_for('login') }}">Login</a></li>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+    </ul>
+</nav>
+
+<main>
+    <h1>Register</h1>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <ul class="flash-messages">
+          {% for category, msg in msgs %}
+            <li class="{{ category }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <form method="post" action="{{ url_for('register') }}">
+        <label>Role:
+            <select name="role" id="roleSelect" required>
+                <option value="employer">Employer</option>
+                <option value="seeker">Job Seeker</option>
+            </select>
+        </label>
+
+        <input type="text" name="name" placeholder="Name" required>
+        <input type="email" name="email" placeholder="Email" required>
+        <input type="password" name="password" placeholder="Password" required>
+
+        <div id="companyField">
+            <input type="text" name="company" placeholder="Company (for employers)">
+        </div>
+
+        <div id="resumeField" style="display:none;">
+            <textarea name="resume_text" placeholder="Paste resume (for job seekers)"></textarea>
+        </div>
+
+        <button type="submit">Register</button>
+    </form>
+
+    <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+</main>
+
+<footer>
+    <p>&copy; 2025 Job Board. All rights reserved.</p>
+</footer>
+
+<script>
+    const roleSelect = document.getElementById('roleSelect');
+    const companyField = document.getElementById('companyField');
+    const resumeField = document.getElementById('resumeField');
+
+    function updateRoleFields() {
+        const role = roleSelect.value;
+        companyField.style.display = (role === 'employer') ? 'block' : 'none';
+        resumeField.style.display = (role === 'seeker') ? 'block' : 'none';
+    }
+
+    roleSelect.addEventListener('change', updateRoleFields);
+    updateRoleFields();
+</script>
+</body>
+</html>

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Board - My Applications</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Job Board</h2>
+    <ul>
+        <li><a href="{{ url_for('job_listings') }}">Job Listings</a></li>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+    </ul>
+</nav>
+
+<main>
+    <h1>My Applications</h1>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <ul class="flash-messages">
+          {% for category, msg in msgs %}
+            <li class="{{ category }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <table>
+        <thead>
+        <tr>
+            <th>Job Title</th>
+            <th>Location</th>
+            <th>Category</th>
+            <th>Status</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for app, job in applications %}
+            <tr>
+                <td>{{ job.title }}</td>
+                <td>{{ job.location }}</td>
+                <td>{{ job.category }}</td>
+                <td>{{ app.status }}</td>
+            </tr>
+        {% else %}
+            <tr><td colspan="4">No applications yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+</main>
+
+<footer>
+    <p>&copy; 2025 Job Board. All rights reserved.</p>
+</footer>
+</body>
+</html>

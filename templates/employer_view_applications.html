@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Job Board - Applications</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<nav>
+    <h2>Job Board</h2>
+    <ul>
+        <li><a href="{{ url_for('employer_jobs') }}">My Jobs</a></li>
+        <li><a href="{{ url_for('index') }}">Home</a></li>
+    </ul>
+</nav>
+
+<main>
+    <h1>Applications for "{{ job.title }}"</h1>
+
+    {% with msgs = get_flashed_messages(with_categories=true) %}
+      {% if msgs %}
+        <ul class="flash-messages">
+          {% for category, msg in msgs %}
+            <li class="{{ category }}">{{ msg }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+
+    <table>
+        <thead>
+        <tr>
+            <th>Applicant</th>
+            <th>Email</th>
+            <th>Resume</th>
+            <th>Status</th>
+            <th>Change Status</th>
+        </tr>
+        </thead>
+
+        <tbody>
+        {% for app, seeker in applications %}
+            <tr>
+                <td>{{ seeker.name }}</td>
+                <td>{{ seeker.email }}</td>
+                <td>{{ seeker.resume or 'N/A' }}</td>
+                <td>{{ app.status }}</td>
+
+                <td>
+                    <form method="post" action="{{ url_for('update_application_status', application_id=app.id) }}">
+                        <select name="status">
+                            <option value="Applied" {% if app.status == 'Applied' %}selected{% endif %}>Applied</option>
+                            <option value="Under Review" {% if app.status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                            <option value="Shortlisted" {% if app.status == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                            <option value="Rejected" {% if app.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                        </select>
+                        <button type="submit">Update</button>
+                    </form>
+                </td>
+            </tr>
+        {% else %}
+            <tr>
+                <td colspan="5">No applications yet.</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+</main>
+
+<footer>
+    <p>&copy; 2025 Job Board. All rights reserved.</p>
+</footer>
+
+</body>
+</html>
