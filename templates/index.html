@@ -9,15 +9,27 @@
 <nav>
     <h2>Job Board</h2>
     <ul>
-        {% if session.get('role') %}
+        {% if 'user_id' in session %}
             <li><a href="{{ url_for('logout') }}">Logout</a></li>
+
+            {% if session['role'] == 'employer' %}
+                <li><a href="{{ url_for('employer_jobs') }}">My Jobs</a></li>
+            {% elif session['role'] == 'seeker' %}
+                <li><a href="{{ url_for('my_applications') }}">My Applications</a></li>
+            {% elif session['role'] == 'admin' %}
+                <li><a href="{{ url_for('admin_dashboard') }}">Admin Dashboard</a></li>
+            {% endif %}
+
+            <li><a href="{{ url_for('job_listings') }}">Job Listings</a></li>
+
         {% else %}
             <li><a href="{{ url_for('login') }}">Login</a></li>
             <li><a href="{{ url_for('register') }}">Register</a></li>
+            <li><a href="{{ url_for('job_listings') }}">Job Listings</a></li>
         {% endif %}
-        <li><a href="{{ url_for('job_listings') }}">Job Listings</a></li>
     </ul>
 </nav>
+
 
 <main>
     <h1>Welcome to Job Board</h1>

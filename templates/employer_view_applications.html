@@ -6,6 +6,7 @@
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
+
 <nav>
     <h2>Job Board</h2>
     <ul>
@@ -43,29 +44,37 @@
             <tr>
                 <td>{{ seeker.name }}</td>
                 <td>{{ seeker.email }}</td>
-                <td>{{ seeker.resume or 'N/A' }}</td>
+
+                <td>
+                    {% if seeker.resume %}
+                        <a href="{{ url_for('uploaded_file', filename=seeker.resume) }}"
+                           class="btn-download" target="_blank">
+                            📄 Download Resume
+                        </a>
+                    {% else %}
+                        No Resume
+                    {% endif %}
+                </td>
+
                 <td>{{ app.status }}</td>
 
                 <td>
-                    <form method="post" action="{{ url_for('update_application_status', application_id=app.id) }}">
+                    <form method="post"
+                          action="{{ url_for('update_application_status', application_id=app.id) }}">
                         <select name="status">
-                            <option value="Applied" {% if app.status == 'Applied' %}selected{% endif %}>Applied</option>
-                            <option value="Under Review" {% if app.status == 'Under Review' %}selected{% endif %}>Under Review</option>
-                            <option value="Shortlisted" {% if app.status == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
-                            <option value="Rejected" {% if app.status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                            <option value="Applied" {% if app.status=='Applied' %}selected{% endif %}>Applied</option>
+                            <option value="Under Review" {% if app.status=='Under Review' %}selected{% endif %}>Under Review</option>
+                            <option value="Shortlisted" {% if app.status=='Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                            <option value="Rejected" {% if app.status=='Rejected' %}selected{% endif %}>Rejected</option>
                         </select>
                         <button type="submit">Update</button>
                     </form>
                 </td>
             </tr>
-        {% else %}
-            <tr>
-                <td colspan="5">No applications yet.</td>
-            </tr>
         {% endfor %}
         </tbody>
-    </table>
 
+    </table>
 </main>
 
 <footer>

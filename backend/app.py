@@ -4,7 +4,7 @@ from functools import wraps
 
 from flask import (
     Flask, render_template, request, redirect,
-    url_for, flash, session
+    url_for, flash, session, send_from_directory
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -25,6 +25,15 @@ def create_app():
         base_dir, 'job_board.db'
     )
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    # -------------------------------
+    # UPLOAD FOLDER CONFIGURATION
+    # -------------------------------
+    UPLOAD_FOLDER = os.path.join(base_dir, 'uploads')
+    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
 
     db.init_app(app)
 
@@ -53,6 +62,11 @@ def create_app():
             )
             db.session.add(admin)
             db.session.commit()
+
+    # Serve uploaded resumes
+    @app.route('/uploads/<filename>')
+    def uploaded_file(filename):
+        return send_from_directory(app.config['UPLOAD_FOLDER'], filename)
 
     # ---------- Public ----------
     @app.route('/')
@@ -91,13 +105,23 @@ def create_app():
     @app.route('/register', methods=['GET', 'POST'])
     def register():
         if request.method == 'POST':
-            role = request.form.get('role')   # 'seeker' or 'employer'
+            role = request.form.get('role')  # 'seeker' or 'employer'
             name = request.form.get('name')
             email = request.form.get('email')
             password = request.form.get('password')
             company = request.form.get('company', '')
-            # For simplicity: resume as text (file upload skipped)
-            resume = request.form.get('resume_text', '')
+
+            # ------------------------------
+            # PASSWORD VALIDATION
+            # ------------------------------
+            import re
+            pattern = r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
+            if not re.match(pattern, password):
+                flash(
+                    "Password must be at least 8 characters long, contain 1 letter, 1 number, and 1 special character.",
+                    "danger")
+                return redirect(url_for('register'))
+            # ------------------------------
 
             if role not in ('seeker', 'employer'):
                 flash('Please select Employer or Job Seeker.', 'danger')
@@ -107,10 +131,12 @@ def create_app():
                 flash('Name, email and password are required.', 'danger')
                 return redirect(url_for('register'))
 
+            # Employer registration
             if role == 'employer':
                 if Employer.query.filter_by(email=email).first():
                     flash('Employer email already registered.', 'danger')
                     return redirect(url_for('register'))
+
                 emp = Employer(
                     name=name,
                     email=email,
@@ -118,15 +144,26 @@ def create_app():
                     company=company
                 )
                 db.session.add(emp)
+
+            # Job Seeker registration with resume upload
             else:
                 if JobSeeker.query.filter_by(email=email).first():
                     flash('Job seeker email already registered.', 'danger')
                     return redirect(url_for('register'))
+
+                resume_file = request.files.get('resume_file')
+                resume_filename = None
+
+                if resume_file:
+                    resume_filename = resume_file.filename
+                    resume_path = os.path.join(app.config['UPLOAD_FOLDER'], resume_filename)
+                    resume_file.save(resume_path)
+
                 seeker = JobSeeker(
                     name=name,
                     email=email,
                     password=generate_password_hash(password),
-                    resume=resume
+                    resume=resume_filename
                 )
                 db.session.add(seeker)
 
@@ -143,10 +180,6 @@ def create_app():
             email_or_username = request.form.get('email')
             password = request.form.get('password')
 
-            # 🔍 DEBUG PRINTS — WILL SHOW EXACT VALUES RECEIVED
-            print("DEBUG ROLE RECEIVED:", role)
-            print("DEBUG USERNAME RECEIVED:", email_or_username)
-
             user = None
 
             if role == 'seeker':
@@ -159,7 +192,6 @@ def create_app():
                 flash('Invalid role selected.', 'danger')
                 return redirect(url_for('login'))
 
-            # Password check
             if user and check_password_hash(user.password, password):
                 session.clear()
                 session['user_id'] = user.id

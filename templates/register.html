@@ -27,7 +27,9 @@
       {% endif %}
     {% endwith %}
 
-    <form method="post" action="{{ url_for('register') }}">
+    <!-- IMPORTANT: Add enctype to support file upload -->
+    <form method="post" action="{{ url_for('register') }}" enctype="multipart/form-data">
+
         <label>Role:
             <select name="role" id="roleSelect" required>
                 <option value="employer">Employer</option>
@@ -37,14 +39,23 @@
 
         <input type="text" name="name" placeholder="Name" required>
         <input type="email" name="email" placeholder="Email" required>
-        <input type="password" name="password" placeholder="Password" required>
 
+        <input type="password" name="password" id="password" required
+        pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}"
+        title="Password must be at least 8 characters long, contain at least 1 letter, 1 number, and 1 special character.">
+        <small style="color: gray;">
+            Password must contain at least 8 characters, 1 letter, 1 number, and 1 special character.
+        </small>
+
+        <!-- Company field for employer -->
         <div id="companyField">
             <input type="text" name="company" placeholder="Company (for employers)">
         </div>
 
+        <!-- Resume upload for job seeker -->
         <div id="resumeField" style="display:none;">
-            <textarea name="resume_text" placeholder="Paste resume (for job seekers)"></textarea>
+            <label>Upload Resume (PDF, DOC, DOCX, TXT):</label>
+            <input type="file" name="resume_file" accept=".pdf,.doc,.docx,.txt">
         </div>
 
         <button type="submit">Register</button>
@@ -71,5 +82,6 @@
     roleSelect.addEventListener('change', updateRoleFields);
     updateRoleFields();
 </script>
+
 </body>
 </html>
