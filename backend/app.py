@@ -21,9 +21,9 @@ def create_app():
     )
 
     app.config['SECRET_KEY'] = 'change-me'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(
-        base_dir, 'job_board.db'
-    )
+    db_path = os.path.join('/tmp', 'job_board.db')
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
+
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # -------------------------------

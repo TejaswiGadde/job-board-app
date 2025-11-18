@@ -3,4 +3,5 @@ Flask-SQLAlchemy==3.0.5
 Flask-Login==0.6.3
 Flask-Migrate==4.0.5
 python-dotenv==1.0.0
-gunicorn
+gunicorn==20.1.0
+
