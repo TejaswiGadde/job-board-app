@@ -21,10 +21,18 @@ def create_app():
     )
 
     app.config['SECRET_KEY'] = 'change-me'
-    db_path = os.path.join('/tmp', 'job_board.db')
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
 
+    # ------------------------------------
+    # DYNAMIC DATABASE PATH (LOCAL/RENDER)
+    # ------------------------------------
+    if os.environ.get("RENDER"):   # Render.com environment variable
+        db_path = "/tmp/job_board.db"
+    else:
+        db_path = os.path.join(base_dir, "job_board.db")
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 
     # -------------------------------
     # UPLOAD FOLDER CONFIGURATION
