@@ -127,3 +127,8 @@ footer {
 .btn-download:hover {
     background-color: #0056b3;
 }
+form input[required],
+form select[required] {
+    border-left: 4px solid red;
+}
+
