@@ -7,7 +7,6 @@ from flask import (
     url_for, flash, session, send_from_directory
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from .models import db, Admin, Employer, JobSeeker, Job, Application
 
 
@@ -25,10 +24,12 @@ def create_app():
     # ------------------------------------
     # DYNAMIC DATABASE PATH (LOCAL/RENDER)
     # ------------------------------------
-    if os.environ.get("RENDER"):   # Render.com environment variable
-        db_path = "/tmp/job_board.db"
-    else:
-        db_path = os.path.join(base_dir, "job_board.db")
+    # backend/app.py
+
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    db_path = os.path.join(base_dir, "job_board.db")
+
+    db_path = os.path.join(base_dir, "job_board.db")
 
     app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + db_path
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
