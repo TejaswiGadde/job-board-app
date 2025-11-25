@@ -2,10 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Job Board - My Applications</title>
+    <title>My Applications - Job Board</title>
+
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    <style>
+        /* Page container */
+        .container-app {
+            width: 80%;
+            margin: 40px auto;
+            padding: 30px;
+            background: #fff;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
+            border-radius: 12px;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 32px;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+
+        /* Table styling */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        th {
+            background-color: #002b5c;
+            color: white;
+            padding: 14px;
+            text-align: left;
+            font-size: 15px;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #ddd;
+            font-size: 15px;
+            color: #333;
+        }
+
+        tr:hover {
+            background-color: #f6f8fa;
+        }
+
+        .status {
+            font-weight: bold;
+            padding: 6px 12px;
+            border-radius: 8px;
+        }
+
+        .status.Applied {
+            background: #e5f1ff;
+            color: #004a9f;
+        }
+
+        .status["Under Review"] {
+            background: #fff6cc;
+            color: #b38f00;
+        }
+
+        .status.Shortlisted {
+            background: #dfffe0;
+            color: #007f2d;
+        }
+
+        .status.Rejected {
+            background: #ffe6e6;
+            color: #cc0000;
+        }
+    </style>
 </head>
 <body>
+
 <nav>
     <h2>Job Board</h2>
     <ul>
@@ -14,7 +88,7 @@
     </ul>
 </nav>
 
-<main>
+<div class="container-app">
     <h1>My Applications</h1>
 
     {% with msgs = get_flashed_messages(with_categories=true) %}
@@ -29,30 +103,33 @@
 
     <table>
         <thead>
-        <tr>
-            <th>Job Title</th>
-            <th>Location</th>
-            <th>Category</th>
-            <th>Status</th>
-        </tr>
-        </thead>
-        <tbody>
-        {% for app, job in applications %}
             <tr>
-                <td>{{ job.title }}</td>
-                <td>{{ job.location }}</td>
-                <td>{{ job.category }}</td>
-                <td>{{ app.status }}</td>
+                <th>Job Title</th>
+                <th>Location</th>
+                <th>Category</th>
+                <th>Status</th>
             </tr>
-        {% else %}
-            <tr><td colspan="4">No applications yet.</td></tr>
-        {% endfor %}
+        </thead>
+
+        <tbody>
+            {% for app, job in applications %}
+                <tr>
+                    <td>{{ job.title }}</td>
+                    <td>{{ job.location }}</td>
+                    <td>{{ job.category }}</td>
+                    <td>
+                        <span class="status {{ app.status }}">{{ app.status }}</span>
+                    </td>
+                </tr>
+            {% endfor %}
         </tbody>
     </table>
-</main>
+
+</div>
 
 <footer>
     <p>&copy; 2025 Job Board. All rights reserved.</p>
 </footer>
+
 </body>
 </html>
