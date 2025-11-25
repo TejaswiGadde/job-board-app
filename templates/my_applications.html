@@ -2,79 +2,51 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Applications - Job Board</title>
-
+    <title>My Applications</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 
     <style>
-        /* Page container */
-        .container-app {
-            width: 80%;
+        /* Full-width clean card */
+        .full-container {
+            width: 95%;
             margin: 40px auto;
-            padding: 30px;
-            background: #fff;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.08);
-            border-radius: 12px;
+            background: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+        }
+
+        /* Clean table */
+        table.full-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        table.full-table th,
+        table.full-table td {
+            padding: 14px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+            font-size: 16px;
+        }
+
+        table.full-table th {
+            background: #f4f6f8;
+            font-weight: bold;
+        }
+
+        table.full-table tr:hover {
+            background: #f9fbfc;
         }
 
         h1 {
-            text-align: center;
-            margin-bottom: 30px;
-            font-size: 32px;
-            font-weight: 700;
-            color: #1a1a1a;
+            margin-bottom: 5px;
         }
 
-        /* Table styling */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-
-        th {
-            background-color: #002b5c;
-            color: white;
-            padding: 14px;
-            text-align: left;
-            font-size: 15px;
-        }
-
-        td {
-            padding: 14px;
-            border-bottom: 1px solid #ddd;
-            font-size: 15px;
-            color: #333;
-        }
-
-        tr:hover {
-            background-color: #f6f8fa;
-        }
-
-        .status {
+        .status-applied {
+            color: #0062ff;
             font-weight: bold;
-            padding: 6px 12px;
-            border-radius: 8px;
-        }
-
-        .status.Applied {
-            background: #e5f1ff;
-            color: #004a9f;
-        }
-
-        .status["Under Review"] {
-            background: #fff6cc;
-            color: #b38f00;
-        }
-
-        .status.Shortlisted {
-            background: #dfffe0;
-            color: #007f2d;
-        }
-
-        .status.Rejected {
-            background: #ffe6e6;
-            color: #cc0000;
         }
     </style>
 </head>
@@ -88,20 +60,21 @@
     </ul>
 </nav>
 
-<div class="container-app">
+<div class="full-container">
+
     <h1>My Applications</h1>
 
     {% with msgs = get_flashed_messages(with_categories=true) %}
-      {% if msgs %}
+    {% if msgs %}
         <ul class="flash-messages">
-          {% for category, msg in msgs %}
-            <li class="{{ category }}">{{ msg }}</li>
-          {% endfor %}
+            {% for category, msg in msgs %}
+                <li class="{{ category }}">{{ msg }}</li>
+            {% endfor %}
         </ul>
-      {% endif %}
+    {% endif %}
     {% endwith %}
 
-    <table>
+    <table class="full-table">
         <thead>
             <tr>
                 <th>Job Title</th>
@@ -112,16 +85,14 @@
         </thead>
 
         <tbody>
-            {% for app, job in applications %}
-                <tr>
-                    <td>{{ job.title }}</td>
-                    <td>{{ job.location }}</td>
-                    <td>{{ job.category }}</td>
-                    <td>
-                        <span class="status {{ app.status }}">{{ app.status }}</span>
-                    </td>
-                </tr>
-            {% endfor %}
+        {% for app, job in applications %}
+            <tr>
+                <td>{{ job.title }}</td>
+                <td>{{ job.location }}</td>
+                <td>{{ job.category }}</td>
+                <td class="status-applied">{{ app.status }}</td>
+            </tr>
+        {% endfor %}
         </tbody>
     </table>
 
