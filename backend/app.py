@@ -29,22 +29,19 @@ def create_app():
     # PERSISTENT DATABASE PATH (IMPORTANT)
     # -------------------------------
     # Azure gives a persistent directory: /home/data
-    if "WEBSITE_INSTANCE_ID" in os.environ:
-        # Running on Azure App Service
-        data_dir = "/home/data"
-        if not os.path.exists(data_dir):
-            os.makedirs(data_dir)
+    # ------------------------------------
+    # FIXED — ALWAYS USE LOCAL DB ON WINDOWS
+    # ------------------------------------
+    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 
-        db_path = os.path.join(data_dir, "job_board.db")
-        print("🔵 Running on Azure — Persistent DB Path:", db_path)
-
-    else:
-        # Running locally
-        db_path = os.path.join(base_dir, "job_board.db")
-        print("🟢 Running Locally — DB Path:", db_path)
+    # This will ALWAYS use your local DB
+    db_path = os.path.join(base_dir, "job_board.db")
 
     app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///" + db_path
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    print("📌 USING DATABASE FILE:", db_path)
+    print("📌 DATABASE EXISTS:", os.path.exists(db_path))
 
     # -------------------------------
     # UPLOAD FOLDER CONFIG
