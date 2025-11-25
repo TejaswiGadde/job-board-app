@@ -32,16 +32,17 @@ def create_app():
     # ------------------------------------
     # FIXED — ALWAYS USE LOCAL DB ON WINDOWS
     # ------------------------------------
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    # Correct base folder: project root
+    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 
-    # This will ALWAYS use your local DB
-    db_path = os.path.join(base_dir, "job_board.db")
+    # Correct DB path at project root
+    DB_PATH = os.path.join(BASE_DIR, "job_board.db")
 
-    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///" + db_path
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + DB_PATH
+    app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    print("📌 USING DATABASE FILE:", db_path)
-    print("📌 DATABASE EXISTS:", os.path.exists(db_path))
+    print("USING DB FILE:", DB_PATH)
+    print("DB EXISTS:", os.path.exists(DB_PATH))
 
     # -------------------------------
     # UPLOAD FOLDER CONFIG
