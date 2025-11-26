@@ -12,74 +12,58 @@ from .models import db, Admin, Employer, JobSeeker, Job, Application
 
 def create_app():
 
-    # -------------------------------
-    # MAIN APP SETUP
-    # -------------------------------
-    base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    # ------------------------------------------------------
+    # LOCAL PROJECT DIRECTORY (job-board-app)
+    # ------------------------------------------------------
+    PROJECT_ROOT = os.path.abspath(
+        os.path.join(os.path.dirname(__file__), "..", "..")
+    )
+
+    # ------------------------------------------------------
+    # DATABASE PATH (ALWAYS LOCAL)
+    # ------------------------------------------------------
+    DB_PATH = os.path.join(PROJECT_ROOT, "job_board.db")
+
+    print("\n---------------------------------------------")
+    print("FLASK RUNNING LOCALLY WITH SQLITE")
+    print("USING DATABASE:", DB_PATH)
+    print("DB EXISTS:", os.path.exists(DB_PATH))
+    print("---------------------------------------------\n")
+
+    # ------------------------------------------------------
+    # FLASK APP CONFIG
+    # ------------------------------------------------------
+    TEMPLATES = os.path.join(PROJECT_ROOT, "templates")
+    STATIC = os.path.join(PROJECT_ROOT, "static")
 
     app = Flask(
         __name__,
-        template_folder=os.path.join(base_dir, 'templates'),
-        static_folder=os.path.join(base_dir, 'static'),
+        template_folder=TEMPLATES,
+        static_folder=STATIC
     )
 
-    app.config['SECRET_KEY'] = 'change-me'
-
-    # -------------------------------
-    # PERSISTENT DATABASE PATH (IMPORTANT)
-    # -------------------------------
-    # Azure gives a persistent directory: /home/data
-    # ------------------------------------
-    # FIXED — ALWAYS USE LOCAL DB ON WINDOWS
-    # ------------------------------------
-    # Correct base folder: project root
-    BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-
-    # Correct DB path at project root
-    DB_PATH = os.path.join(BASE_DIR, "job_board.db")
-
+    app.config["SECRET_KEY"] = "change-me"
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + DB_PATH
     app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
-    print("USING DB FILE:", DB_PATH)
-    print("DB EXISTS:", os.path.exists(DB_PATH))
-
-    # -------------------------------
-    # UPLOAD FOLDER CONFIG
-    # -------------------------------
-    UPLOAD_FOLDER = os.path.join(base_dir, "uploads")
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    # ------------------------------------------------------
+    # UPLOAD FOLDER
+    # ------------------------------------------------------
+    UPLOAD_FOLDER = os.path.join(PROJECT_ROOT, "uploads")
+    app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
 
-    # Initialize DB
+    # ------------------------------------------------------
+    # INITIALIZE DATABASE
+    # ------------------------------------------------------
     db.init_app(app)
 
-    # -------------------------------
-    # LOGIN REQUIRED DECORATOR
-    # -------------------------------
-    def login_required(role=None):
-        def decorator(f):
-            @wraps(f)
-            def wrapper(*args, **kwargs):
-                if "user_id" not in session or "role" not in session:
-                    flash("Please log in first.", "warning")
-                    return redirect(url_for("login"))
-
-                if role and session["role"] != role:
-                    flash("You are not authorized for that page.", "danger")
-                    return redirect(url_for("index"))
-
-                return f(*args, **kwargs)
-            return wrapper
-        return decorator
-
-    # -------------------------------
-    # CREATE TABLES AND DEFAULT ADMIN
-    # -------------------------------
     with app.app_context():
         db.create_all()
+
+        # Create default admin if not exists
         if not Admin.query.filter_by(username="admin").first():
             admin = Admin(
                 username="admin",
@@ -89,16 +73,33 @@ def create_app():
             db.session.commit()
             print("⭐ Default admin created: admin / admin123")
 
-    # -------------------------------
-    # FILE DOWNLOAD ROUTE
-    # -------------------------------
+    # ------------------------------------------------------
+    # LOGIN REQUIRED DECORATOR
+    # ------------------------------------------------------
+    def login_required(role=None):
+        def decorator(f):
+            @wraps(f)
+            def wrapper(*args, **kwargs):
+                if "user_id" not in session or "role" not in session:
+                    flash("Please log in first.", "warning")
+                    return redirect(url_for("login"))
+                if role and session["role"] != role:
+                    flash("Unauthorized page.", "danger")
+                    return redirect(url_for("index"))
+                return f(*args, **kwargs)
+            return wrapper
+        return decorator
+
+    # ------------------------------------------------------
+    # FILE SERVING
+    # ------------------------------------------------------
     @app.route("/uploads/<filename>")
     def uploaded_file(filename):
         return send_from_directory(app.config["UPLOAD_FOLDER"], filename)
 
-    # -------------------------------
+    # ------------------------------------------------------
     # PUBLIC ROUTES
-    # -------------------------------
+    # ------------------------------------------------------
     @app.route("/")
     def index():
         jobs = Job.query.order_by(Job.id.desc()).limit(5).all()
@@ -113,8 +114,10 @@ def create_app():
         query = Job.query
 
         if q:
-            like = f"%{q}%"
-            query = query.filter(Job.title.ilike(like) | Job.description.ilike(like))
+            query = query.filter(
+                Job.title.ilike(f"%{q}%") |
+                Job.description.ilike(f"%{q}%")
+            )
 
         if category:
             query = query.filter(Job.category.ilike(f"%{category}%"))
@@ -123,12 +126,17 @@ def create_app():
             query = query.filter(Job.location.ilike(f"%{location}%"))
 
         jobs = query.order_by(Job.id.desc()).all()
+        return render_template(
+            "job_listings.html",
+            jobs=jobs,
+            q=q,
+            category=category,
+            location=location
+        )
 
-        return render_template("job_listings.html", jobs=jobs, q=q, category=category, location=location)
-
-    # -------------------------------
+    # ------------------------------------------------------
     # REGISTER
-    # -------------------------------
+    # ------------------------------------------------------
     @app.route("/register", methods=["GET", "POST"])
     def register():
         if request.method == "POST":
@@ -138,25 +146,20 @@ def create_app():
             password = request.form.get("password")
             company = request.form.get("company", "")
 
-            # Password validation
+            if role not in ("seeker", "employer"):
+                flash("Choose Employer or Job Seeker.", "danger")
+                return redirect(url_for("register"))
+
             import re
             pattern = r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$"
             if not re.match(pattern, password):
-                flash("Password must be 8+ chars with letter, number, special character.", "danger")
+                flash("Weak password.", "danger")
                 return redirect(url_for("register"))
 
-            if role not in ("seeker", "employer"):
-                flash("Please select a valid role.", "danger")
-                return redirect(url_for("register"))
-
-            if not name or not email or not password:
-                flash("All fields are required.", "danger")
-                return redirect(url_for("register"))
-
-            # Employer registration
+            # Employer
             if role == "employer":
                 if Employer.query.filter_by(email=email).first():
-                    flash("Employer email already registered.", "danger")
+                    flash("Email already registered.", "danger")
                     return redirect(url_for("register"))
 
                 emp = Employer(
@@ -167,10 +170,10 @@ def create_app():
                 )
                 db.session.add(emp)
 
-            # Seeker registration
+            # Job Seeker
             else:
                 if JobSeeker.query.filter_by(email=email).first():
-                    flash("Job seeker email already registered.", "danger")
+                    flash("Email already registered.", "danger")
                     return redirect(url_for("register"))
 
                 resume_file = request.files.get("resume_file")
@@ -190,14 +193,14 @@ def create_app():
                 db.session.add(seeker)
 
             db.session.commit()
-            flash("Registration successful! Please log in.", "success")
+            flash("Registered successfully!", "success")
             return redirect(url_for("login"))
 
         return render_template("register.html")
 
-    # -------------------------------
+    # ------------------------------------------------------
     # LOGIN
-    # -------------------------------
+    # ------------------------------------------------------
     @app.route("/login", methods=["GET", "POST"])
     def login():
         if request.method == "POST":
@@ -206,7 +209,6 @@ def create_app():
             password = request.form.get("password")
 
             user = None
-
             if role == "seeker":
                 user = JobSeeker.query.filter_by(email=email_or_username).first()
             elif role == "employer":
@@ -219,31 +221,29 @@ def create_app():
                 session["user_id"] = user.id
                 session["role"] = role
 
-                flash("Login successful!", "success")
-
                 if role == "admin":
                     return redirect(url_for("admin_dashboard"))
                 if role == "employer":
                     return redirect(url_for("employer_jobs"))
                 return redirect(url_for("job_listings"))
 
-            flash("Invalid credentials.", "danger")
+            flash("Invalid login.", "danger")
             return redirect(url_for("login"))
 
         return render_template("login.html")
 
-    # -------------------------------
+    # ------------------------------------------------------
     # LOGOUT
-    # -------------------------------
+    # ------------------------------------------------------
     @app.route("/logout")
     def logout():
         session.clear()
         flash("Logged out.", "info")
         return redirect(url_for("index"))
 
-    # -------------------------------
+    # ------------------------------------------------------
     # JOB SEEKER ROUTES
-    # -------------------------------
+    # ------------------------------------------------------
     @app.route("/apply/<int:job_id>", methods=["POST"])
     @login_required(role="seeker")
     def apply(job_id):
@@ -251,10 +251,15 @@ def create_app():
         seeker_id = session["user_id"]
 
         if Application.query.filter_by(job_id=job.id, seeker_id=seeker_id).first():
-            flash("You already applied for this job.", "warning")
+            flash("Already applied.", "warning")
             return redirect(url_for("job_listings"))
 
-        app_obj = Application(job_id=job.id, seeker_id=seeker_id, status="Applied")
+        app_obj = Application(
+            job_id=job.id,
+            seeker_id=seeker_id,
+            status="Applied"
+        )
+
         db.session.add(app_obj)
         db.session.commit()
 
@@ -266,17 +271,16 @@ def create_app():
     def my_applications():
         seeker_id = session["user_id"]
         applications = (
-            Application.query
-            .filter_by(seeker_id=seeker_id)
+            Application.query.filter_by(seeker_id=seeker_id)
             .join(Job)
             .add_entity(Job)
             .all()
         )
         return render_template("my_applications.html", applications=applications)
 
-    # -------------------------------
+    # ------------------------------------------------------
     # EMPLOYER ROUTES
-    # -------------------------------
+    # ------------------------------------------------------
     @app.route("/employer/jobs")
     @login_required(role="employer")
     def employer_jobs():
@@ -296,13 +300,13 @@ def create_app():
             category = request.form.get("category")
 
             if not title:
-                flash("Title is required.", "danger")
+                flash("Title required.", "danger")
                 return redirect(url_for("employer_post_job"))
 
             try:
                 salary = float(salary_raw) if salary_raw else None
-            except ValueError:
-                flash("Salary must be a number.", "danger")
+            except:
+                flash("Salary must be numeric.", "danger")
                 return redirect(url_for("employer_post_job"))
 
             job = Job(
@@ -329,7 +333,7 @@ def create_app():
         job = Job.query.get_or_404(job_id)
 
         if job.employer_id != employer_id:
-            flash("You cannot edit this job.", "danger")
+            flash("Unauthorized.", "danger")
             return redirect(url_for("employer_jobs"))
 
         if request.method == "POST":
@@ -337,12 +341,12 @@ def create_app():
             job.description = request.form.get("description")
             job.location = request.form.get("location")
             job.category = request.form.get("category")
-            salary_raw = request.form.get("salary")
 
+            salary_raw = request.form.get("salary")
             try:
                 job.salary = float(salary_raw) if salary_raw else None
-            except ValueError:
-                flash("Salary must be a number.", "danger")
+            except:
+                flash("Salary must be numeric.", "danger")
                 return redirect(url_for("edit_job", job_id=job.id))
 
             db.session.commit()
@@ -358,7 +362,7 @@ def create_app():
         job = Job.query.get_or_404(job_id)
 
         if job.employer_id != employer_id:
-            flash("You cannot delete this job.", "danger")
+            flash("Unauthorized.", "danger")
             return redirect(url_for("employer_jobs"))
 
         Application.query.filter_by(job_id=job.id).delete()
@@ -379,8 +383,7 @@ def create_app():
             return redirect(url_for("employer_jobs"))
 
         applications = (
-            Application.query
-            .filter_by(job_id=job.id)
+            Application.query.filter_by(job_id=job.id)
             .join(JobSeeker)
             .add_entity(JobSeeker)
             .all()
@@ -407,13 +410,12 @@ def create_app():
         application.status = new_status
 
         db.session.commit()
-
         flash("Status updated.", "success")
         return redirect(url_for("employer_view_applications", job_id=job.id))
 
-    # -------------------------------
-    # ADMIN DASHBOARD
-    # -------------------------------
+    # ------------------------------------------------------
+    # ADMIN
+    # ------------------------------------------------------
     @app.route("/admin/dashboard")
     @login_required(role="admin")
     def admin_dashboard():
