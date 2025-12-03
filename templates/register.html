@@ -5,7 +5,10 @@
     <title>Job Board - Register</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
+
 <body>
+
+<!-- Navbar -->
 <nav>
     <h2>Job Board</h2>
     <ul>
@@ -14,9 +17,11 @@
     </ul>
 </nav>
 
+<!-- Main Card -->
 <main>
     <h1>Register</h1>
 
+    <!-- Flash Messages -->
     {% with msgs = get_flashed_messages(with_categories=true) %}
       {% if msgs %}
         <ul class="flash-messages">
@@ -27,47 +32,63 @@
       {% endif %}
     {% endwith %}
 
-    <!-- IMPORTANT: Add enctype to support file upload -->
+    <!-- Registration Form -->
     <form method="post" action="{{ url_for('register') }}" enctype="multipart/form-data">
 
-        <label>Role:
-            <select name="role" id="roleSelect" required>
-                <option value="employer">Employer</option>
-                <option value="seeker">Job Seeker</option>
-            </select>
-        </label>
+        <!-- Role -->
+        <label class="form-label">Select Role:</label>
+        <select name="role" id="roleSelect" required>
+            <option value="employer">Employer</option>
+            <option value="seeker">Job Seeker</option>
+        </select>
 
-        <input type="text" name="name" placeholder="Name" required>
-        <input type="email" name="email" placeholder="Email" required>
+        <!-- Name -->
+        <input type="text" name="name" placeholder="Full Name" required>
 
-        <input type="password" name="password" id="password" placeholder="Password" required
-        pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}"
-        title="Password must be at least 8 characters long, contain at least 1 letter, 1 number, and 1 special character.">
+        <!-- Email -->
+        <input type="email"
+               name="email"
+               placeholder="Email Address"
+               required
+               pattern="^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$"
+               title="Enter a valid email like username@example.com">
+
+        <!-- Password -->
+        <input type="password" name="password" placeholder="Password" required
+               pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}"
+               title="Password must be 8+ chars, include a letter, number, and special character.">
+
         <small style="color: gray;">
-            Password must contain at least 8 characters, 1 letter, 1 number, and 1 special character.
+            Password must contain 8+ characters, 1 letter, 1 number, and 1 special character.
         </small>
 
-        <!-- Company field for employer -->
+        <!-- Company (Employer Only) -->
         <div id="companyField">
-            <input type="text" name="company" placeholder="Company (for employers)">
+            <input type="text" name="company" placeholder="Company Name (Only for Employers)">
         </div>
 
-        <!-- Resume upload for job seeker -->
+        <!-- Resume Upload (Job Seeker Only) -->
         <div id="resumeField" style="display:none;">
-            <label>Upload Resume (PDF, DOC, DOCX, TXT):</label>
+            <label class="form-label">Upload Resume (PDF, DOC, DOCX, TXT):</label>
             <input type="file" name="resume_file" accept=".pdf,.doc,.docx,.txt">
         </div>
 
+        <!-- Submit -->
         <button type="submit">Register</button>
     </form>
 
-    <p>Already have an account? <a href="{{ url_for('login') }}">Login</a></p>
+    <p style="margin-top:20px;">
+        Already have an account? <a href="{{ url_for('login') }}">Login</a>
+    </p>
+
 </main>
 
+<!-- Footer -->
 <footer>
-    <p>&copy; 2025 Job Board. All rights reserved.</p>
+    © 2025 Job Board. All rights reserved.
 </footer>
 
+<!-- Role Toggle Script -->
 <script>
     const roleSelect = document.getElementById('roleSelect');
     const companyField = document.getElementById('companyField');
